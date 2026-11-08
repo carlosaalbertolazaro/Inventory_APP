@@ -8,7 +8,7 @@ import com.example.appcrud.domain.repository.EquipoRepository
 import kotlin.Result
 import retrofit2.Response
 
-class EquipoRepositoryImpl private constructor(
+class EquipoRepositoryImpl internal constructor(
     private val apiService: ApiService
 ) : EquipoRepository {
 

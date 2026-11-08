@@ -17,10 +17,11 @@ class SessionStorage private constructor(
         }
     }
 
-    fun getInstance(context: Context): SessionStorage {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return SessionStorage(prefs)
-
+    fun saveSession(token: String, email: String) {
+        val editor = preferences.edit()
+        editor.putString(KEY_TOKEN, token)
+        editor.putString(KEY_EMAIL, email)
+        editor.apply()
     }
 
     fun getToken(): String? = preferences.getString(KEY_TOKEN, null)
