@@ -40,3 +40,4 @@ string serie
 string sin_equipos
 string ubicacion
 style Theme_AppCrud
+xml network_security_config

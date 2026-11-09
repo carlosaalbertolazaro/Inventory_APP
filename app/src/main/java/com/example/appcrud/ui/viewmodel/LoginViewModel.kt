@@ -14,7 +14,9 @@ import retrofit2.Response
 data class LoginUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
+    val email: String = "",
+    val password: String = ""
 )
 
 class LoginViewModel(
@@ -25,7 +27,23 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    fun login(email: String, password: String) {
+    fun onEmailChange(email: String) {
+        _uiState.value = _uiState.value.copy(email = email)
+    }
+
+    fun onPasswordChange(password: String) {
+        _uiState.value = _uiState.value.copy(password = password)
+    }
+
+    fun login() {
+        val email = _uiState.value.email
+        val password = _uiState.value.password
+
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = _uiState.value.copy(error = "Llena todos los campos")
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {

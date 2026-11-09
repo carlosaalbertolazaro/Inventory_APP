@@ -12,7 +12,9 @@ import retrofit2.Response
 data class RegisterUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val registered: Boolean = false
+    val registered: Boolean = false,
+    val email: String = "",
+    val password: String = ""
 )
 
 class RegisterViewModel(
@@ -22,7 +24,23 @@ class RegisterViewModel(
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
-    fun register(email: String, password: String) {
+    fun onEmailChange(email: String) {
+        _uiState.value = _uiState.value.copy(email = email)
+    }
+
+    fun onPasswordChange(password: String) {
+        _uiState.value = _uiState.value.copy(password = password)
+    }
+
+    fun register() {
+        val email = _uiState.value.email
+        val password = _uiState.value.password
+
+        if (email.isBlank() || password.isBlank()) {
+            _uiState.value = _uiState.value.copy(error = "Llena todos los campos")
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {

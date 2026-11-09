@@ -15,10 +15,13 @@ class ApiServiceFactory private constructor(
     fun create(): ApiService = retrofit.create(ApiService::class.java)
 
     companion object {
-        private const val BASE_URL = "http://10.0.2.2:3000/"
+        // ⚠️ CAMBIA ESTA IP SEGÚN TU DISPOSITIVO:
+        //  Emulador Android:  http://10.0.2.2:3000/
+        //  Celular físico:   http://<IP-de-tu-PC>:3000/   (ej. http://192.168.1.45:3000/)
+        private const val BASE_URL = "http:192.168.0.224:3000/"
 
         fun create(context: Context): ApiServiceFactory {
-            val sessionStorage = SessionStorage.getInstance(context)
+            val sessionStorage = SessionStorage.getInstance(context.applicationContext)
 
             val client = OkHttpClient.Builder()
                 .addInterceptor(object : Interceptor {
