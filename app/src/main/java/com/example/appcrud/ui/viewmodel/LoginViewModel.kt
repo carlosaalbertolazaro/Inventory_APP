@@ -2,14 +2,12 @@ package com.example.appcrud.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.appcrud.data.local.SessionStorage
-import com.example.appcrud.data.remote.ApiService
-import com.example.appcrud.data.remote.AuthResponse
+import com.example.appcrud.domain.repository.AuthRepository
+import com.example.appcrud.domain.validation.CredentialValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import retrofit2.Response
 
 data class LoginUiState(
     val isLoading: Boolean = false,
@@ -20,54 +18,49 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val apiService: ApiService,
-    private val sessionStorage: SessionStorage
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(
+        LoginUiState(isLoggedIn = authRepository.hasActiveSession())
+    )
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.value = _uiState.value.copy(email = email)
+        _uiState.value = _uiState.value.copy(email = email, error = null)
     }
 
     fun onPasswordChange(password: String) {
-        _uiState.value = _uiState.value.copy(password = password)
+        _uiState.value = _uiState.value.copy(password = password, error = null)
     }
 
     fun login() {
-        val email = _uiState.value.email
-        val password = _uiState.value.password
+        if (_uiState.value.isLoading) return
 
-        if (email.isBlank() || password.isBlank()) {
-            _uiState.value = _uiState.value.copy(error = "Llena todos los campos")
+        val email = _uiState.value.email.trim()
+        val password = _uiState.value.password
+        val validationError = CredentialValidator.validateLogin(email, password)
+        if (validationError != null) {
+            _uiState.value = _uiState.value.copy(error = validationError)
             return
         }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            try {
-                val response: Response<AuthResponse> = apiService.login(email, password)
-                if (response.isSuccessful && response.body() != null) {
-                    val token = response.body()!!.accessToken
-                    val userEmail = response.body()!!.user?.email ?: email
-                    sessionStorage.saveSession(token, userEmail)
-                    _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
-                } else {
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = "Credenciales inválidas")
+            authRepository.login(email, password).fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = true
+                    )
+                },
+                onFailure = { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message ?: "No se pudo iniciar sesión."
+                    )
                 }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message ?: "Error de red")
-            }
+            )
         }
-    }
-
-    fun checkSession() {
-        _uiState.value = _uiState.value.copy(isLoggedIn = sessionStorage.isLoggedIn())
-    }
-
-    fun logout() {
-        sessionStorage.clearSession()
-        _uiState.value = LoginUiState()
     }
 }

@@ -1,13 +1,30 @@
 package com.example.appcrud.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.collectAsState
 import com.example.appcrud.ui.viewmodel.RegisterViewModel
 
 @Composable
@@ -16,11 +33,13 @@ fun RegisterScreen(
     onGoToLogin: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
-    val uiState = viewModel.uiState.collectAsState().value
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -33,30 +52,53 @@ fun RegisterScreen(
 
         OutlinedTextField(
             value = uiState.email,
-            onValueChange = { viewModel.onEmailChange(it) },
+            onValueChange = viewModel::onEmailChange,
             label = { Text("Correo electrónico") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+            enabled = !uiState.isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
         )
 
         OutlinedTextField(
             value = uiState.password,
-            onValueChange = { viewModel.onPasswordChange(it) },
+            onValueChange = viewModel::onPasswordChange,
             label = { Text("Contraseña") },
+            supportingText = { Text("Mínimo 4 caracteres") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)
+            enabled = !uiState.isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
         )
 
-        if (uiState.error != null) {
+        OutlinedTextField(
+            value = uiState.confirmPassword,
+            onValueChange = viewModel::onConfirmPasswordChange,
+            label = { Text("Confirmar contraseña") },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            singleLine = true,
+            enabled = !uiState.isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp)
+        )
+
+        uiState.error?.let { error ->
             Text(
-                text = uiState.error!!,
+                text = error,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
 
         Button(
-            onClick = { viewModel.register() },
+            onClick = viewModel::register,
             enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -67,14 +109,12 @@ fun RegisterScreen(
             }
         }
 
-        TextButton(onClick = onGoToLogin) {
-            Text("Ya tienes cuenta? Inicia sesión")
+        TextButton(onClick = onGoToLogin, enabled = !uiState.isLoading) {
+            Text("¿Ya tienes cuenta? Inicia sesión")
         }
 
         LaunchedEffect(uiState.registered) {
-            if (uiState.registered) {
-                onRegisterSuccess()
-            }
+            if (uiState.registered) onRegisterSuccess()
         }
     }
 }

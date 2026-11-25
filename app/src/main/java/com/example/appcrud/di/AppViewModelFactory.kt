@@ -11,9 +11,12 @@ class AppViewModelFactory(private val appContainer: AppContainer) : ViewModelPro
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when (modelClass) {
-            LoginViewModel::class.java -> LoginViewModel(appContainer.apiService, appContainer.sessionStorage) as T
-            RegisterViewModel::class.java -> RegisterViewModel(appContainer.apiService) as T
-            HomeViewModel::class.java -> HomeViewModel(appContainer.equipoRepository) as T
+            LoginViewModel::class.java -> LoginViewModel(appContainer.authRepository) as T
+            RegisterViewModel::class.java -> RegisterViewModel(appContainer.authRepository) as T
+            HomeViewModel::class.java -> HomeViewModel(
+                appContainer.equipoRepository,
+                appContainer.authRepository
+            ) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
         }
     }

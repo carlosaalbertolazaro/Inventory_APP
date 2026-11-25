@@ -3,6 +3,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val apiBaseUrl = providers.gradleProperty("API_BASE_URL")
+    .orElse("https://api-prueba-itinventory.onrender.com/")
+    .get()
+    .let { if (it.endsWith("/")) it else "$it/" }
+
+require(apiBaseUrl.startsWith("http://") || apiBaseUrl.startsWith("https://")) {
+    "API_BASE_URL debe comenzar con http:// o https://"
+}
+
 android {
     namespace = "com.example.appcrud"
     compileSdk = 37
@@ -13,6 +22,9 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -28,6 +40,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -53,5 +66,11 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
+    implementation(libs.androidx.coroutines.android)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

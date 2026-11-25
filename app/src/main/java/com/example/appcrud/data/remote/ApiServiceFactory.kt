@@ -1,13 +1,12 @@
 package com.example.appcrud.data.remote
 
 import android.content.Context
+import com.example.appcrud.BuildConfig
 import com.example.appcrud.data.local.SessionStorage
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.Interceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class ApiServiceFactory private constructor(
     private val retrofit: Retrofit
@@ -15,33 +14,27 @@ class ApiServiceFactory private constructor(
     fun create(): ApiService = retrofit.create(ApiService::class.java)
 
     companion object {
-        // ⚠️ CAMBIA ESTA IP SEGÚN TU DISPOSITIVO:
-        //  Emulador Android:  http://10.0.2.2:3000/
-        //  Celular físico:   http://<IP-de-tu-PC>:3000/   (ej. http://192.168.1.45:3000/)
-        private const val BASE_URL = "http:192.168.0.224:3000/"
-
         fun create(context: Context): ApiServiceFactory {
             val sessionStorage = SessionStorage.getInstance(context.applicationContext)
-
             val client = OkHttpClient.Builder()
-                .addInterceptor(object : Interceptor {
-                    override fun intercept(chain: Interceptor.Chain): Response {
-                        val request: Request = chain.request()
-                        val token = sessionStorage.getToken()
-                        val authenticatedRequest = if (token != null) {
-                            request.newBuilder()
-                                .addHeader("Authorization", "Bearer $token")
-                                .build()
-                        } else {
-                            request
-                        }
-                        return chain.proceed(authenticatedRequest)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .addInterceptor { chain ->
+                    val token = sessionStorage.getToken()
+                    val request = if (token.isNullOrBlank()) {
+                        chain.request()
+                    } else {
+                        chain.request().newBuilder()
+                            .header("Authorization", "Bearer $token")
+                            .build()
                     }
-                })
+                    chain.proceed(request)
+                }
                 .build()
 
             val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(BuildConfig.API_BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
