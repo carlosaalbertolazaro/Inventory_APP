@@ -14,6 +14,9 @@ runtime = "1.12.1"
 retrofit = "3.0.0"
 foundation = "1.12.1"
 kotlinxCoroutines = "1.10.1"
+playServicesLocation = "21.3.0"
+javaxInject = "1"
+mockk = "1.13.17"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +43,9 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.2" }
 androidx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javaxInject" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
